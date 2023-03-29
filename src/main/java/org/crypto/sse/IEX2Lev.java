@@ -39,6 +39,9 @@ import java.util.concurrent.ExecutionException;
 
 public class IEX2Lev implements Serializable {
 
+	private static final String GLOBAL_MAP = "GLOBAL_MAP";
+	private static final String LOCAL_MAP = "LOCAL_MAPS";
+
 	// Parameter of Disjunctive search
 	public static int maxDocumentIDs = 0;
 
@@ -152,7 +155,7 @@ public class IEX2Lev implements Serializable {
 
 		long startTime1 = System.nanoTime();
 
-		IEX2Lev disj2 = new IEX2Lev(RR2Lev.constructEMMParGMM(keys.get(0), lookup, bigBlock, smallBlock, dataSize),
+		IEX2Lev disj2 = new IEX2Lev(RR2Lev.constructEMMParGMM(keys.get(0), lookup, bigBlock, smallBlock, dataSize, GLOBAL_MAP),
 				localMultiMap, dictionaryForMM);
 
 		long endTime1 = System.nanoTime();
@@ -176,7 +179,7 @@ public class IEX2Lev implements Serializable {
 
 				if (counter == (int) ((j + 1) * lookup.keySet().size() / 100)) {
 					BufferedWriter writer2 = new BufferedWriter(new FileWriter("temp-logs.txt", true));
-					writer2.write("\n Number of local multi-maps created" + j + " %");
+					writer2.write("\n Number of local multi-maps created " + j + " %");
 					writer2.close();
 
 					break;
@@ -228,7 +231,7 @@ public class IEX2Lev implements Serializable {
 				// dataSize = (int) filterParameter;
 				disj2.getLocalMultiMap()[counter] = RR2Lev.constructEMMParGMM(
 						CryptoPrimitives.generateHmac(keys.get(0), keyword), secondaryLookup, bigBlock, smallBlock,
-						dataSize);
+						dataSize, LOCAL_MAP);
 				byte[] key3 = CryptoPrimitives.generateHmac(keys.get(1), 3 + keyword);
 				numberPairs = numberPairs + secondaryLookup.size();
 				dictionaryForMM.put(new String(key3), counter);

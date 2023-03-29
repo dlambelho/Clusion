@@ -1,5 +1,7 @@
 package database;
 
+import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.Multimap;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -32,8 +34,4 @@ public class DatabaseConnection {
         return dbConn;
     }
 
-    public static void main(String[] args) throws SQLException {
-
-        DatabaseConnection.getInstance().createStatement().execute("insert into CLUSION.GLOBAL_MAP VALUES ('HI', 'WORLD')");
-    }
 }

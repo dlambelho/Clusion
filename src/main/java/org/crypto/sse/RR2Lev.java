@@ -9,7 +9,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -19,6 +19,13 @@ package org.crypto.sse;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 
+import database.DatabaseConnection;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Collection;
 import javax.crypto.NoSuchPaddingException;
 import java.io.File;
 import java.io.IOException;
@@ -37,6 +44,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.*;
+import javax.xml.crypto.Data;
 
 //***********************************************************************************************//
 
@@ -119,9 +127,9 @@ public class RR2Lev implements Serializable {
 			final int smallBlock, final int dataSize) throws InterruptedException, ExecutionException, IOException {
 
 		final Multimap<String, byte[]> dictionary = ArrayListMultimap.create();
-		
+
 		random.setSeed(CryptoPrimitives.randomSeed(16));
-        
+
 		for (int i = 0; i < dataSize; i++) {
 			// initialize all buckets with random values
 			free.add(i);
@@ -195,10 +203,10 @@ public class RR2Lev implements Serializable {
 	}
 
 	public static RR2Lev constructEMMParGMM(final byte[] key, final Multimap<String, String> lookup, final int bigBlock,
-			final int smallBlock, final int dataSize) throws InterruptedException, ExecutionException, IOException {
+			final int smallBlock, final int dataSize, String table) throws InterruptedException, ExecutionException, IOException {
 
 		final Multimap<String, byte[]> dictionary = ArrayListMultimap.create();
-		
+
 		random.setSeed(CryptoPrimitives.randomSeed(16));
 
 		for (int i = 0; i < dataSize; i++) {
@@ -255,6 +263,40 @@ public class RR2Lev implements Serializable {
 
 			for (String k : keys) {
 				dictionary.putAll(k, future.get().get(k));
+			}
+
+		}
+
+		for (Future<Multimap<String, byte[]>> future : futures) {
+
+			Collection<Map.Entry<String, byte[]>> keys = future.get().entries();
+
+			for (Map.Entry<String, byte[]> k : keys) {
+				String checkEntry = "SELECT COUNT(*) FROM CLUSION." + table + " WHERE HMAC LIKE ?";
+
+				String stat;
+				try (PreparedStatement statement = DatabaseConnection.getInstance().prepareStatement(checkEntry)) {
+					statement.setString(1, k.getKey());
+					ResultSet result = statement.executeQuery();
+					result.next();
+					if(result.getInt(1) <= 0) {
+						stat = "INSERT INTO CLUSION." + table + " (IDENTIFIER, HMAC) VALUES (?, ?)";
+					} else {
+						stat = "UPDATE CLUSION." + table + " SET IDENTIFIER = ? WHERE HMAC = ?";
+					}
+				} catch (SQLException e) {
+					throw new RuntimeException(e);
+				}
+
+
+				try (PreparedStatement statement = DatabaseConnection.getInstance().prepareStatement(stat);) {
+					statement.setString(2, k.getKey());
+					statement.setString(1, new String(k.getValue()));
+
+					statement.executeUpdate();
+				} catch (SQLException e) {
+					throw new RuntimeException(e);
+				}
 			}
 
 		}
@@ -401,7 +443,7 @@ public class RR2Lev implements Serializable {
 					random.nextBytes(iv);
 					byte[] v = CryptoPrimitives.encryptAES_CTR_String(key2, iv,
 							"3 " + listArrayIndexTwo.toString(), smallBlock * sizeOfFileIdentifer);
-					gamma.put(new String(l),v);	
+					gamma.put(new String(l),v);
 				}
 
 			}

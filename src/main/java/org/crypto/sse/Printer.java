@@ -26,7 +26,7 @@ public class Printer {
 	
 	final private static List<Printer> PRINTERS = new ArrayList<Printer>();
 	
-	private LEVEL level = LEVEL.NORMAL;
+	private LEVEL level = LEVEL.DEBUG;
 	
 	/**
 	 * Sets level to NORMAL by default.
