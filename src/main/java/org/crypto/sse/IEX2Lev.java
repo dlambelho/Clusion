@@ -288,7 +288,7 @@ public class IEX2Lev implements Serializable {
 		for (int i = 0; i < token.size(); i++) {
 
 			Set<String> result = new HashSet<String>(RR2Lev.query(token.get(i).getTokenMMGlobal(),
-					disj.getGlobalMM().getDictionary(), disj.getGlobalMM().getArray()));
+					disj.getGlobalMM().getDictionary(), disj.getGlobalMM().getArray(), GLOBAL_MAP));
 
 			if (!(result.size() == 0)) {
 				List<Integer> temp = new ArrayList<Integer>(
@@ -301,12 +301,12 @@ public class IEX2Lev implements Serializable {
 
 						Set<String> temporary = new HashSet<String>();
 						List<String> tempoList = RR2Lev.query(token.get(i).getTokenMMLocal().get(j),
-								disj.getLocalMultiMap()[pos].getDictionary(), disj.getLocalMultiMap()[pos].getArray());
+								disj.getLocalMultiMap()[pos].getDictionary(), disj.getLocalMultiMap()[pos].getArray(), LOCAL_MAP);
 
 						if (!(tempoList == null)) {
 							temporary = new HashSet<String>(RR2Lev.query(token.get(i).getTokenMMLocal().get(j),
 									disj.getLocalMultiMap()[pos].getDictionary(),
-									disj.getLocalMultiMap()[pos].getArray()));
+									disj.getLocalMultiMap()[pos].getArray(), LOCAL_MAP));
 						}
 
 						result = Sets.difference(result, temporary);

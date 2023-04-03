@@ -59,7 +59,7 @@ public class TestLocalRR2Lev {
 		System.out.println("Number of pairs "+	TextExtractPar.lp1.keys().size());
 		//start
         long startTime = System.nanoTime();
-		RR2Lev twolev = RR2Lev.constructEMMParGMM(listSK.get(0), TextExtractPar.lp1, bigBlock, smallBlock, dataSize);
+		RR2Lev twolev = RR2Lev.constructEMMParGMM(listSK.get(0), TextExtractPar.lp1, bigBlock, smallBlock, dataSize, "");
 		//end
         long endTime = System.nanoTime();
 
@@ -73,7 +73,7 @@ public class TestLocalRR2Lev {
 			String keyword = keyRead.readLine();
 			byte[][] token = RR2Lev.token(listSK.get(0), keyword);
 
-			System.out.println("Final Result: " + twolev.query(token, twolev.getDictionary(), twolev.getArray()));
+			System.out.println("Final Result: " + twolev.query(token, twolev.getDictionary(), twolev.getArray(), ""));
 
 		}
 

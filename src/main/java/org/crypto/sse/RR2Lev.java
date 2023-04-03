@@ -25,6 +25,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Base64;
 import java.util.Collection;
 import javax.crypto.NoSuchPaddingException;
 import java.io.File;
@@ -44,6 +45,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.*;
+import javax.sql.rowset.serial.SerialClob;
 import javax.xml.crypto.Data;
 
 //***********************************************************************************************//
@@ -291,7 +293,7 @@ public class RR2Lev implements Serializable {
 
 				try (PreparedStatement statement = DatabaseConnection.getInstance().prepareStatement(stat);) {
 					statement.setString(2, k.getKey());
-					statement.setString(1, new String(k.getValue()));
+					statement.setBytes(1, Base64.getEncoder().encode(k.getValue()));
 
 					statement.executeUpdate();
 				} catch (SQLException e) {
@@ -477,13 +479,25 @@ public class RR2Lev implements Serializable {
 
 	// ***********************************************************************************************//
 
-	public static List<String> query(byte[][] keys, Multimap<String, byte[]> dictionary, byte[][] array)
+	public static List<String> query(byte[][] keys, Multimap<String, byte[]> dictionary, byte[][] array, String table)
 			throws InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException,
 			NoSuchProviderException, NoSuchPaddingException, IOException {
 
 		byte[] l = CryptoPrimitives.generateHmac(keys[0], Integer.toString(0));
 
-		List<byte[]> tempList = new ArrayList<byte[]>(dictionary.get(new String(l)));
+		List<byte[]> tempList = new ArrayList<>();
+		List<byte[]> tempList2 = new ArrayList<byte[]>(dictionary.get(new String(l)));
+
+		String fetch = "SELECT IDENTIFIER FROM CLUSION." + table + " WHERE HMAC LIKE ?";
+		try (PreparedStatement statement = DatabaseConnection.getInstance().prepareStatement(fetch)) {
+			statement.setString(1, new String(l));
+			ResultSet result = statement.executeQuery();
+			if (result.next())
+				tempList = List.of(Base64.getDecoder().decode(result.getBytes(1)));
+
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
 
 		if (!(tempList.size() == 0)) {
 			String temp = (new String(CryptoPrimitives.decryptAES_CTR_String(tempList.get(0), keys[1])))

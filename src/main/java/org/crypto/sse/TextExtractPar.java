@@ -293,10 +293,8 @@ public class TextExtractPar implements Serializable {
 				PDFParser parser;
 				try {
 					parser = new PDFParser((RandomAccessRead) fis);
-					parser.parse();
-					COSDocument cd = parser.getDocument();
 					PDFTextStripper stripper = new PDFTextStripper();
-					lines.add(stripper.getText(new PDDocument(cd)));
+					lines.add(stripper.getText(parser.parse()));
 
 				} catch (IOException e) {
 					// TODO Auto-generated catch block

@@ -89,7 +89,7 @@ public class TestLocalIEXZMF {
 		}
 
 		IEX2Lev disj = new IEX2Lev(
-				RR2Lev.constructEMMParGMM(listSK.get(1), TextExtractPar.lp1, bigBlock, smallBlock, dataSize),
+				RR2Lev.constructEMMParGMM(listSK.get(1), TextExtractPar.lp1, bigBlock, smallBlock, dataSize, ""),
 				localMultiMap, dictionaryForMM);
 
 		Printer.debugln("\n Beginning of local encrypted multi-map construction \n");
@@ -163,7 +163,7 @@ public class TestLocalIEXZMF {
 					// argument)
 
 					List<String> resultTMP = RR2Lev.query(tokenTMP.get(0).getTokenMMGlobal(),
-							disj.getGlobalMM().getDictionary(), disj.getGlobalMM().getArray());
+							disj.getGlobalMM().getDictionary(), disj.getGlobalMM().getArray(), "");
 
 					Map<String, boolean[]> listOfbloomFilter = new HashMap<String, boolean[]>();
 
