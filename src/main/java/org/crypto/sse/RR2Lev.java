@@ -218,7 +218,7 @@ public class RR2Lev implements Serializable {
 
 		List<String> listOfKeyword = new ArrayList<String>(lookup.keySet());
 		int threads = 0;
-		if (Runtime.getRuntime().availableProcessors() > listOfKeyword.size()) {
+		if (Runtime.getRuntime().availableProcessors() > listOfKeyword.size() && listOfKeyword.size() != 0) {
 			threads = listOfKeyword.size();
 		} else {
 			threads = Runtime.getRuntime().availableProcessors();
