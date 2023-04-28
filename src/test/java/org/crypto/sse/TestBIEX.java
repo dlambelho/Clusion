@@ -1,5 +1,6 @@
 package org.crypto.sse;
 
+import database.DatabaseConnection;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -25,8 +26,8 @@ import javax.crypto.NoSuchPaddingException;
 public class TestBIEX {
 
 
-    static int bigBlock = 1000;
-    static int smallBlock = 100;
+    static int bigBlock = 10;
+    static int smallBlock = 3;
 
     public static void main(String[] args) throws Exception {
 
@@ -34,6 +35,9 @@ public class TestBIEX {
 
         String option;
 
+
+        DatabaseConnection.getInstance();
+        DatabaseConnection.clearDatabase();
 
         List<byte[]> listSKs = new ArrayList<byte[]>();
         listSKs.add(new byte[32]);
@@ -156,15 +160,11 @@ public class TestBIEX {
                         for (int j = 0; j < tokenTMP.get(0).getTokenMMLocal().size(); j++) {
 
                             Set<String> temporary = new HashSet<String>();
-                            List<String> tempoList = RR2Lev.query(tokenTMP.get(0).getTokenMMLocal().get(j),
-                                    disj.getLocalMultiMap()[pos].getDictionary(),
-                                    disj.getLocalMultiMap()[pos].getArray(), "LOCAL_MAPS");
+                            List<String> tempoList = RR2Lev.query(tokenTMP.get(0).getTokenMMLocal().get(j), "LOCAL_MAPS");
 
                             if (!(tempoList == null)) {
                                 temporary = new HashSet<String>(
-                                        RR2Lev.query(tokenTMP.get(0).getTokenMMLocal().get(j),
-                                                disj.getLocalMultiMap()[pos].getDictionary(),
-                                                disj.getLocalMultiMap()[pos].getArray(), "LOCAL_MAPS"));
+                                        RR2Lev.query(tokenTMP.get(0).getTokenMMLocal().get(j), "LOCAL_MAPS"));
                             }
 
                             finalResult.addAll(temporary);

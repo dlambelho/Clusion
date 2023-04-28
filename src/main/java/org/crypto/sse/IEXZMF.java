@@ -138,8 +138,7 @@ public class IEXZMF implements Serializable {
 		List<String> result = new ArrayList<String>();
 
 		for (int i = 0; i < token.size(); i++) {
-			List<String> resultTMP = RR2Lev.query(token.get(i).getTokenMMGlobal(), disj.getGlobalMM().getDictionary(),
-					disj.getGlobalMM().getArray(), "");
+			List<String> resultTMP = RR2Lev.query(token.get(i).getTokenMMGlobal(), "");
 
 			// Printer.debugln("Result of MM Global "+resultTMP);
 

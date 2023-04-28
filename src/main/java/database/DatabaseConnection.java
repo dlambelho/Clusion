@@ -1,11 +1,8 @@
 package database;
 
-import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Multimap;
 import java.sql.Connection;
-import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import oracle.jdbc.driver.OracleDriver;
 import oracle.jdbc.pool.OracleDataSource;
 
 public class DatabaseConnection {
@@ -14,13 +11,14 @@ public class DatabaseConnection {
     private static final String USERNAME = "CLUSION";
     private static final String PASSWORD = "oracle";
 
+    private static final String CLEAR = "TRUNCATE TABLE %s";
+
     private static Connection dbConn;
 
     private DatabaseConnection() {
         try {
             OracleDataSource ds = new OracleDataSource();
             ds.setURL(url);
-            //DriverManager.registerDriver(new OracleDriver());
             dbConn = ds.getConnection(USERNAME, PASSWORD);
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -32,6 +30,21 @@ public class DatabaseConnection {
             new DatabaseConnection();
 
         return dbConn;
+    }
+
+    public static void clearDatabase() {
+        if (dbConn != null) {
+            try (PreparedStatement statement = dbConn.prepareStatement(String.format(CLEAR, "GLOBAL_MAP"))) {
+                statement.execute();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+            try (PreparedStatement statement = dbConn.prepareStatement(String.format(CLEAR, "LOCAL_MAPS"))) {
+                statement.execute();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
 }

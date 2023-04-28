@@ -44,6 +44,7 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.pdfbox.cos.COSDocument;
 import org.apache.pdfbox.io.RandomAccessRead;
+import org.apache.pdfbox.io.RandomAccessReadBuffer;
 import org.apache.pdfbox.pdfparser.PDFParser;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
@@ -151,7 +152,7 @@ public class TextExtractPar implements Serializable {
 			for (String key : keywordSet1) {
 				lp1.putAll(key, future.get().getL1().get(key));
 				if (lp1.get(key).size()>maxTupleSize){
-					maxTupleSize= lp1.get(key).size();
+					maxTupleSize = lp1.get(key).size();
 				}
 			}
 			for (String key : keywordSet2) {
@@ -292,7 +293,7 @@ public class TextExtractPar implements Serializable {
 
 				PDFParser parser;
 				try {
-					parser = new PDFParser((RandomAccessRead) fis);
+					parser = new PDFParser(new RandomAccessReadBuffer(fis));
 					PDFTextStripper stripper = new PDFTextStripper();
 					lines.add(stripper.getText(parser.parse()));
 

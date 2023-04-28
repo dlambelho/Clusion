@@ -162,8 +162,7 @@ public class TestLocalIEX2Lev {
 
 					List<TokenDIS> tokenTMP = IEX2Lev.token(listSK, searchTMP);
 
-					Set<String> result = new HashSet<String>(RR2Lev.query(tokenTMP.get(0).getTokenMMGlobal(),
-							disj.getGlobalMM().getDictionary(), disj.getGlobalMM().getArray(), ""));
+					Set<String> result = new HashSet<String>(RR2Lev.query(tokenTMP.get(0).getTokenMMGlobal(), ""));
 
 					if (!(tmpBol.size() == 0)) {
 						List<Integer> temp = new ArrayList<Integer>(
@@ -175,15 +174,11 @@ public class TestLocalIEX2Lev {
 							for (int j = 0; j < tokenTMP.get(0).getTokenMMLocal().size(); j++) {
 
 								Set<String> temporary = new HashSet<String>();
-								List<String> tempoList = RR2Lev.query(tokenTMP.get(0).getTokenMMLocal().get(j),
-										disj.getLocalMultiMap()[pos].getDictionary(),
-										disj.getLocalMultiMap()[pos].getArray(), "");
+								List<String> tempoList = RR2Lev.query(tokenTMP.get(0).getTokenMMLocal().get(j), "");
 
 								if (!(tempoList == null)) {
 									temporary = new HashSet<String>(
-											RR2Lev.query(tokenTMP.get(0).getTokenMMLocal().get(j),
-													disj.getLocalMultiMap()[pos].getDictionary(),
-													disj.getLocalMultiMap()[pos].getArray(), ""));
+											RR2Lev.query(tokenTMP.get(0).getTokenMMLocal().get(j), ""));
 								}
 
 								finalResult.addAll(temporary);

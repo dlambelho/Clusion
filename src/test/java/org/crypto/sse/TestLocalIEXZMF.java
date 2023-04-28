@@ -162,8 +162,7 @@ public class TestLocalIEXZMF {
 					// Here we perform an intersection (contrary to its
 					// argument)
 
-					List<String> resultTMP = RR2Lev.query(tokenTMP.get(0).getTokenMMGlobal(),
-							disj.getGlobalMM().getDictionary(), disj.getGlobalMM().getArray(), "");
+					List<String> resultTMP = RR2Lev.query(tokenTMP.get(0).getTokenMMGlobal(), "");
 
 					Map<String, boolean[]> listOfbloomFilter = new HashMap<String, boolean[]>();
 
