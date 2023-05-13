@@ -44,6 +44,16 @@ public class DatabaseConnection {
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
+            try (PreparedStatement statement = dbConn.prepareStatement(String.format(CLEAR, "BXT_TSET"))) {
+                statement.execute();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+            try (PreparedStatement statement = dbConn.prepareStatement(String.format(CLEAR, "BXT_XSET"))) {
+                statement.execute();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 

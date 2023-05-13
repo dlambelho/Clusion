@@ -147,7 +147,7 @@ public class TestLocalIEX2Lev {
 
 			// Printer.debugln(searchBol);
 
-			Set<String> tmpBol = IEX2Lev.query(IEX2Lev.token(listSK, searchBol), disj);
+			Set<String> tmpBol = IEX2Lev.query(IEX2Lev.token(listSK, searchBol));
 
 			// Printer.debugln(tmpBol);
 

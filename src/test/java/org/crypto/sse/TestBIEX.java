@@ -26,8 +26,8 @@ import javax.crypto.NoSuchPaddingException;
 public class TestBIEX {
 
 
-    static int bigBlock = 10;
-    static int smallBlock = 3;
+    static int bigBlock = 100;
+    static int smallBlock = 20;
 
     public static void main(String[] args) throws Exception {
 
@@ -57,36 +57,38 @@ public class TestBIEX {
 
         TextProc.TextProc(false, pathName);
 
-
+        long start = System.currentTimeMillis();
         IEX2Lev disj = IEX2Lev.setup(listSKs, TextExtractPar.lp1, TextExtractPar.lp2, bigBlock, smallBlock, 0);
+        long end = System.currentTimeMillis();
+        System.out.println(end-start);
 
 
         // this is an example of how to perform boolean queries
 
         // number of disjunctions
         //int numDisjunctions = 2;
-        do {
-            System.out.print("> ");
-            option = in.nextLine().trim();
-            String[] conjunctions = option.split(",");
-            if (!option.equals("exit")) {
-                // add three keys - here initialized to zeros for test purposes
-                // Storing the CNF form
-                String[][] query = new String[conjunctions.length][];
-                int c = 0;
-                for(String st : conjunctions) {
-                    query[c++] = st.split(" ");
-                }
-
-//                query[0] = "market".split(" ");  //TODO Make lowercase, this is done automatically by the parser
-//                query[1] = "states".split(" ");
-//                query[2] = "magia".split(" ");
-
-                Map<String, List<TokenDIS>> token = token_BIEX(listSKs, query);
-                query_BIEX(disj, token);
-            }
-
-        } while (!option.equals("exit"));
+//        do {
+//            System.out.print("> ");
+//            option = in.nextLine().trim();
+//            String[] conjunctions = option.split(" ");
+//            if (!option.equals("exit")) {
+//                // add three keys - here initialized to zeros for test purposes
+//                // Storing the CNF form
+//                String[][] query = new String[conjunctions.length][];
+//                int c = 0;
+//                for(String st : conjunctions) {
+//                    query[c++] = st.split(",");
+//                }
+//
+////                query[0] = "market".split(" ");  //TODO Make lowercase, this is done automatically by the parser
+////                query[1] = "states".split(" ");
+////                query[2] = "magia".split(" ");
+//
+//                Map<String, List<TokenDIS>> token = token_BIEX(listSKs, query);
+//                query_BIEX(token);
+//            }
+//
+//        } while (!option.equals("exit"));
 
     }
 
@@ -122,7 +124,7 @@ public class TestBIEX {
     }
 
 
-    public static void query_BIEX(IEX2Lev disj, Map<String, List<TokenDIS>> token) throws InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException,
+    public static void query_BIEX(Map<String, List<TokenDIS>> token) throws InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException,
             NoSuchProviderException, NoSuchPaddingException, UnsupportedEncodingException, IOException {
 
 
@@ -146,7 +148,7 @@ public class TestBIEX {
         }
 
 
-        Set<String> tmpBol = IEX2Lev.query(token.get(queryLength+" "+firstQueryLength), disj);
+        Set<String> tmpBol = IEX2Lev.query(token.get(queryLength+" "+firstQueryLength));
 
 
         for (int i = 1; i < queryLength; i++) {
@@ -160,11 +162,11 @@ public class TestBIEX {
                         for (int j = 0; j < tokenTMP.get(0).getTokenMMLocal().size(); j++) {
 
                             Set<String> temporary = new HashSet<String>();
-                            List<String> tempoList = RR2Lev.query(tokenTMP.get(0).getTokenMMLocal().get(j), "LOCAL_MAPS");
+                            List<String> tempoList = RR2Lev.altQuery(tokenTMP.get(0).getTokenMMLocal().get(j), "LOCAL_MAPS");
 
                             if (!(tempoList == null)) {
                                 temporary = new HashSet<String>(
-                                        RR2Lev.query(tokenTMP.get(0).getTokenMMLocal().get(j), "LOCAL_MAPS"));
+                                        RR2Lev.altQuery(tokenTMP.get(0).getTokenMMLocal().get(j), "LOCAL_MAPS"));
                             }
 
                             finalResult.addAll(temporary);

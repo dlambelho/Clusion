@@ -129,7 +129,7 @@ public class RR2Lev implements Serializable {
 	// ***********************************************************************************************//
 
 	public static RR2Lev constructEMMParGMM(final byte[] key, final Multimap<String, String> lookup, final int bigBlock,
-			final int smallBlock, final int dataSize, String table) throws InterruptedException, ExecutionException, IOException {
+											final int smallBlock, final int dataSize, String table) throws InterruptedException, ExecutionException, IOException {
 
 		final Multimap<String, byte[]> dictionary = ArrayListMultimap.create();
 
@@ -184,42 +184,36 @@ public class RR2Lev implements Serializable {
 
 		service.shutdown();
 
-		for (Future<Multimap<String, byte[]>> future : futures) {
+		try {
+			for (Future<Multimap<String, byte[]>> future : futures) {
 
-			Collection<Map.Entry<String, byte[]>> keys = future.get().entries();
+				Collection<Map.Entry<String, byte[]>> keys = future.get().entries();
 
-			for (Map.Entry<String, byte[]> k : keys) {
 				String checkEntry = "SELECT COUNT(*) FROM CLUSION." + table + " WHERE HMAC LIKE ?";
 
-				String stat;
-				try (PreparedStatement statement = DatabaseConnection.getInstance().prepareStatement(checkEntry)) {
-					statement.setString(1, k.getKey());
-					ResultSet result = statement.executeQuery();
-					result.next();
-					if(result.getInt(1) <= 0) {
-						stat = "INSERT INTO CLUSION." + table + " (IDENTIFIER, HMAC) VALUES (?, ?)";
-					} else {
-						stat = "UPDATE CLUSION." + table + " SET IDENTIFIER = ? WHERE HMAC = ?";
-					}
-				} catch (SQLException e) {
-					throw new RuntimeException(e);
-				}
+				String stat = "INSERT INTO CLUSION." + table + " (IDENTIFIER, HMAC) VALUES (?, ?)";
 
-
+				DatabaseConnection.getInstance().setAutoCommit(false);
 				try (PreparedStatement statement = DatabaseConnection.getInstance().prepareStatement(stat)) {
 
-					statement.setString(2, k.getKey());
-					statement.setBytes(1, Base64.getEncoder().encode(k.getValue()));
+					for (Map.Entry<String, byte[]> k : keys) {
+						statement.setString(2, k.getKey());
+						statement.setBytes(1, Base64.getEncoder().encode(k.getValue()));
+						statement.addBatch();
+					}
 
-					statement.executeUpdate();
+					statement.executeBatch();
 				} catch (SQLException e) {
 					throw new RuntimeException(e);
 				}
 			}
 
+			DatabaseConnection.getInstance().commit();
+			return new RR2Lev(dictionary, array);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
 		}
 
-		return new RR2Lev(dictionary, array);
 	}
 
 	// ***********************************************************************************************//
@@ -229,7 +223,7 @@ public class RR2Lev implements Serializable {
 	// ***********************************************************************************************//
 
 	public static Multimap<String, byte[]> setup(byte[] key, String[] listOfKeyword, Multimap<String, String> lookup,
-			int bigBlock, int smallBlock, int dataSize) throws InvalidKeyException, InvalidAlgorithmParameterException,
+												 int bigBlock, int smallBlock, int dataSize) throws InvalidKeyException, InvalidAlgorithmParameterException,
 			NoSuchAlgorithmException, NoSuchProviderException, NoSuchPaddingException, IOException {
 
 		// determine the size f the data set and therefore the size of the array
@@ -237,7 +231,7 @@ public class RR2Lev implements Serializable {
 		Multimap<String, byte[]> gamma = ArrayListMultimap.create();
 		long startTime = System.nanoTime();
 
-        byte[] iv = new byte[16];
+        byte[] iv = CryptoPrimitives.randomBytes(16);
 
 		for (String word : listOfKeyword) {
 
@@ -255,12 +249,10 @@ public class RR2Lev implements Serializable {
 				// pad DB(w) to "small block"
 				byte[] l = CryptoPrimitives.generateHmac(key1, Integer.toString(0));
 				random.nextBytes(iv);
-				byte[] v =CryptoPrimitives.encryptAES_CTR_String(key2, iv,
+				byte[] v = CryptoPrimitives.encryptAES_CTR_String(key2, iv,
 						"1 " + lookup.get(word).toString(), smallBlock * sizeOfFileIdentifer);
 				gamma.put(new String(l), v);
-			}
-
-			else {
+			} else {
 
 				List<String> listArrayIndex = new ArrayList<String>();
 
@@ -309,7 +301,7 @@ public class RR2Lev implements Serializable {
 					byte[] l = CryptoPrimitives.generateHmac(key1, Integer.toString(0));
 					random.nextBytes(iv);
 					byte[] v = CryptoPrimitives.encryptAES_CTR_String(key2, iv,
-									"2 " + listArrayIndex.toString(), smallBlock * sizeOfFileIdentifer);
+							"2 " + listArrayIndex.toString(), smallBlock * sizeOfFileIdentifer);
 					gamma.put(new String(l),v);
 				}
 				// big case
@@ -430,9 +422,7 @@ public class RR2Lev implements Serializable {
 
 				resultFinal.remove(0);
 				return resultFinal;
-			}
-
-			else if (result[0].equals("2")) {
+			} else if (result[0].equals("2")) {
 				resultFinal.remove(0);
 
 				List<String> resultFinal2 = new ArrayList<String>();
@@ -446,9 +436,7 @@ public class RR2Lev implements Serializable {
 						if (counter < key.length() && Character.isDigit(key.charAt(counter))) {
 
 							counter++;
-						}
-
-						else {
+						} else {
 							flag = false;
 						}
 					}
@@ -457,7 +445,7 @@ public class RR2Lev implements Serializable {
 					if (!(array[Integer.parseInt((String) key.subSequence(0, counter))] == null)) {
 						temp2 = (new String(CryptoPrimitives.decryptAES_CTR_String(
 								array[Integer.parseInt((String) key.subSequence(0, counter))], keys[1])))
-										.split("\t\t\t")[0];
+								.split("\t\t\t")[0];
 					}
 					temp2 = temp2.replaceAll("\\s", "");
 
@@ -474,9 +462,7 @@ public class RR2Lev implements Serializable {
 				}
 
 				return resultFinal2;
-			}
-
-			else if (result[0].equals("3")) {
+			} else if (result[0].equals("3")) {
 				resultFinal.remove(0);
 				List<String> resultFinal2 = new ArrayList<String>();
 				for (String key : resultFinal) {
@@ -488,15 +474,13 @@ public class RR2Lev implements Serializable {
 						if (counter < key.length() && Character.isDigit(key.charAt(counter))) {
 
 							counter++;
-						}
-
-						else {
+						} else {
 							flag = false;
 						}
 					}
 					String temp2 = (new String(CryptoPrimitives.decryptAES_CTR_String(
 							array[Integer.parseInt((String) key.subSequence(0, counter))], keys[1])))
-									.split("\t\t\t")[0];
+							.split("\t\t\t")[0];
 					temp2 = temp2.replaceAll("\\s", "");
 
 					temp2 = temp2.replaceAll(",XX", "");
@@ -518,15 +502,13 @@ public class RR2Lev implements Serializable {
 						if (counter < key.length() && Character.isDigit(key.charAt(counter))) {
 
 							counter++;
-						}
-
-						else {
+						} else {
 							flag = false;
 						}
 					}
 					String temp2 = (new String(CryptoPrimitives.decryptAES_CTR_String(
 							array[Integer.parseInt((String) key.subSequence(0, counter))], keys[1])))
-									.split("\t\t\t")[0];
+							.split("\t\t\t")[0];
 					temp2 = temp2.replaceAll("\\s", "");
 					temp2 = temp2.replaceAll(",XX", "");
 

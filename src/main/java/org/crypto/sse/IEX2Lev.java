@@ -280,7 +280,7 @@ public class IEX2Lev implements Serializable {
 
 	// ***********************************************************************************************//
 
-	public static Set<String> query(List<TokenDIS> token, IEX2Lev disj)
+	public static Set<String> query(List<TokenDIS> token)
 			throws InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException,
 			NoSuchProviderException, NoSuchPaddingException, IOException {
 
@@ -290,11 +290,6 @@ public class IEX2Lev implements Serializable {
 			Set<String> result = new HashSet<String>(RR2Lev.altQuery(token.get(i).getTokenMMGlobal(), GLOBAL_MAP));
 
 			if (!(result.size() == 0)) {
-				List<Integer> temp = new ArrayList<Integer>(
-						disj.getDictionaryForMM().get(new String(token.get(i).getTokenDIC())));
-
-				if (!(temp.size() == 0)) {
-					int pos = temp.get(0);
 
 					for (int j = 0; j < token.get(i).getTokenMMLocal().size(); j++) {
 
@@ -311,7 +306,7 @@ public class IEX2Lev implements Serializable {
 						}
 
 					}
-				}
+
 				finalResult.addAll(result);
 			}
 		}
