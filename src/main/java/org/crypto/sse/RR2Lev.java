@@ -147,6 +147,7 @@ public class RR2Lev implements Serializable {
 		} else {
 			threads = Runtime.getRuntime().availableProcessors();
 		}
+		threads = 1;
 
 		ExecutorService service = Executors.newFixedThreadPool(threads);
 		ArrayList<String[]> inputs = new ArrayList<String[]>(threads);
@@ -174,9 +175,8 @@ public class RR2Lev implements Serializable {
 		for (final String[] input : inputs) {
 			Callable<Multimap<String, byte[]>> callable = new Callable<Multimap<String, byte[]>>() {
 				public Multimap<String, byte[]> call() throws Exception {
-
-					Multimap<String, byte[]> output = altSetup(key, input, lookup, bigBlock, smallBlock);
-					return output;
+//					System.out.println("-----------STARTED THREAD---------INPUT: " + arrayToString(input) + "---------------");
+					return altSetup(key, input, lookup, bigBlock, smallBlock);
 				}
 			};
 			futures.add(service.submit(callable));
@@ -214,6 +214,14 @@ public class RR2Lev implements Serializable {
 			throw new RuntimeException(e);
 		}
 
+	}
+
+	private static String arrayToString(Object[] array) {
+		StringBuilder builder = new StringBuilder();
+		for (Object obj: array) {
+			builder.append(obj.toString() + " ");
+		}
+		return builder.toString();
 	}
 
 	// ***********************************************************************************************//
@@ -547,12 +555,14 @@ public class RR2Lev implements Serializable {
             byte[] key2 = CryptoPrimitives.generateHmac(key, 2 + word);
             int t = (int) Math.ceil((float) lookup.get(word).size() / bigBlock);
 
+			AES_Encryptor encryptor1 = new AES_Encryptor(key1, iv);
+			AES_Encryptor encryptor2 = new AES_Encryptor(key2, iv);
+
             if (lookup.get(word).size() <= smallBlock) {
                 // pad DB(w) to "small block"
                 byte[] l = CryptoPrimitives.generateHmac(key1, Integer.toString(0));
-                random.nextBytes(iv);
-                byte[] v = CryptoPrimitives.encryptAES_CTR_String(key2, iv,
-                        "1 " + lookup.get(word).toString(), smallBlock * sizeOfFileIdentifer);
+                //random.nextBytes(iv);
+                byte[] v = encryptor2.encryptAES_CTR_String("1 " + lookup.get(word).toString(), smallBlock * sizeOfFileIdentifer);
                 gamma.put(new String(l), v);
             } else {
 
@@ -577,22 +587,21 @@ public class RR2Lev implements Serializable {
 
                     // generate the integer which is associated to free[b]
 
-                    byte[] randomBytes = CryptoPrimitives
-                            .randomBytes((int) Math.ceil(((float) Math.log(free.size()) / (Math.log(2) * 8))));
+//                    byte[] randomBytes = CryptoPrimitives
+//                            .randomBytes((int) Math.ceil(((float) Math.log(free.size()) / (Math.log(2) * 8))));
+//
+//                    int position = CryptoPrimitives.getIntFromByte(randomBytes,
+//                            (int) Math.ceil(Math.log(free.size()) / Math.log(2)));
+//
+//                    while (position >= free.size() - 1) {
+//                        position = position / 2;
+//                    }
+//
+//                    int tmpPos = free.get(position);
+                    //random.nextBytes(iv);
 
-                    int position = CryptoPrimitives.getIntFromByte(randomBytes,
-                            (int) Math.ceil(Math.log(free.size()) / Math.log(2)));
-
-                    while (position >= free.size() - 1) {
-                        position = position / 2;
-                    }
-
-                    int tmpPos = free.get(position);
-                    random.nextBytes(iv);
-
-                    byte[] v = CryptoPrimitives.encryptAES_CTR_String(key2, iv,
-                            "1 " + tmpList.toString(), bigBlock * sizeOfFileIdentifer);
-					byte[] l = CryptoPrimitives.randomBytes(32);
+                    byte[] v = encryptor2.encryptAES_CTR_String("1 " + lookup.get(word).toString(), smallBlock * sizeOfFileIdentifer);
+					byte[] l = CryptoPrimitives.randomBytes(16);
 					String id = new String(Base64.getEncoder().encode(l));
 					listArrayIndex.add(id);
 					gamma.put(id,v);
@@ -602,9 +611,8 @@ public class RR2Lev implements Serializable {
                 // medium case
                 if (t <= smallBlock) {
                     byte[] l = CryptoPrimitives.generateHmac(key1, Integer.toString(0));
-                    random.nextBytes(iv);
-                    byte[] v = CryptoPrimitives.encryptAES_CTR_String(key2, iv,
-                            "2 " + listArrayIndex.toString(), smallBlock * sizeOfFileIdentifer);
+                    //random.nextBytes(iv);
+                    byte[] v = encryptor2.encryptAES_CTR_String("2 " + listArrayIndex.toString(), smallBlock * sizeOfFileIdentifer);
                     gamma.put(new String(l), v);
                 }
                 // big case
@@ -630,23 +638,23 @@ public class RR2Lev implements Serializable {
 
                         // generate the integer which is associated to free[b]
 
-                        byte[] randomBytes = CryptoPrimitives
-                                .randomBytes((int) Math.ceil((Math.log(free.size()) / (Math.log(2) * 8))));
+//                        byte[] randomBytes = CryptoPrimitives
+//                                .randomBytes((int) Math.ceil((Math.log(free.size()) / (Math.log(2) * 8))));
+//
+//                        int position = CryptoPrimitives.getIntFromByte(randomBytes,
+//                                (int) Math.ceil(Math.log(free.size()) / Math.log(2)));
+//
+//                        while (position >= free.size()) {
+//                            position = position / 2;
+//                        }
+//
+//                        int tmpPos = free.get(position);
+                        //random.nextBytes(iv);
 
-                        int position = CryptoPrimitives.getIntFromByte(randomBytes,
-                                (int) Math.ceil(Math.log(free.size()) / Math.log(2)));
+						byte[] list = encryptor2.encryptAES_CTR_String("2 " + listArrayIndex.toString(), smallBlock * sizeOfFileIdentifer);
 
-                        while (position >= free.size()) {
-                            position = position / 2;
-                        }
 
-                        int tmpPos = free.get(position);
-                        random.nextBytes(iv);
-
-                        byte[] list = CryptoPrimitives.encryptAES_CTR_String(key2, iv,
-                                tmpListTwo.toString(), bigBlock * sizeOfFileIdentifer);
-
-                        byte[] v = CryptoPrimitives.randomBytes(32);
+						byte[] v = CryptoPrimitives.randomBytes(32);
                         listArrayIndexTwo.add(new String(v));
                         //TODO save aeach entry with a random key and place them in the list listArrayIndexTwo
 						String id = new String(Base64.getEncoder().encode(v));
@@ -657,9 +665,8 @@ public class RR2Lev implements Serializable {
                     // Pad the second set of identifiers
 
                     byte[] l = CryptoPrimitives.generateHmac(key1, Integer.toString(0));
-                    random.nextBytes(iv);
-                    byte[] v = CryptoPrimitives.encryptAES_CTR_String(key2, iv,
-                            "3 " + listArrayIndexTwo.toString(), smallBlock * sizeOfFileIdentifer);
+                    //random.nextBytes(iv);
+                    byte[] v = encryptor2.encryptAES_CTR_String("3 " + listArrayIndexTwo.toString(), smallBlock * sizeOfFileIdentifer);
                     gamma.put(new String(l), v);
                 }
             }

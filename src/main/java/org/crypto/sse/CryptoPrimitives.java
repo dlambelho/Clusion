@@ -45,8 +45,11 @@ import java.util.Arrays;
 
 public class CryptoPrimitives {
 
+	static ThreadedSeedGenerator thread;
+
 	static {
 		Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+		thread = new ThreadedSeedGenerator();
 	}
 
 	private CryptoPrimitives() {
@@ -154,9 +157,8 @@ public class CryptoPrimitives {
 
 	public static byte[] randomBytes(int size) {
 		byte[] randomBytes = new byte[size];
-		ThreadedSeedGenerator thread = new ThreadedSeedGenerator();
 		SecureRandom random = new SecureRandom();
-		random.setSeed(thread.generateSeed(20, false));
+//		random.setSeed(thread.generateSeed(20, true));
 		random.nextBytes(randomBytes);
 		return randomBytes;
 	}
@@ -169,9 +171,8 @@ public class CryptoPrimitives {
 	// ***********************************************************************************************//
 
 	public static byte[] randomSeed(int size) {
-		byte[] seed = new byte[size];
-		ThreadedSeedGenerator thread = new ThreadedSeedGenerator();
-		seed = thread.generateSeed(size, false);
+		byte[] seed;
+		seed = thread.generateSeed(size, true);
 		return seed;
 	}
 

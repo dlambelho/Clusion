@@ -27,6 +27,11 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import javax.crypto.NoSuchPaddingException;
 import java.io.*;
 import java.security.InvalidAlgorithmParameterException;
@@ -171,7 +176,62 @@ public class IEX2Lev implements Serializable {
 
 		long startTime = System.nanoTime();
 
-		for (String keyword : lookup.keySet()) {
+		int threads = 0;
+		if (Runtime.getRuntime().availableProcessors() > lookup.keySet().size() && lookup.keySet().size() != 0) {
+			threads = lookup.keySet().size();
+		} else {
+			threads = Runtime.getRuntime().availableProcessors();
+		}
+		ExecutorService service = Executors.newFixedThreadPool(threads);
+		ArrayList<String[]> inputs = new ArrayList<String[]>(threads);
+
+		for (int i = 0; i < threads; i++) {
+			String[] tmp;
+			if (i == threads - 1) {
+				tmp = new String[lookup.keySet().size() / threads + lookup.keySet().size() % threads];
+				for (int j = 0; j < lookup.keySet().size() / threads + lookup.keySet().size() % threads; j++) {
+					tmp[j] = lookup.keySet().stream().toList().get((lookup.keySet().size() / threads) * i + j);
+				}
+			} else {
+				tmp = new String[lookup.keySet().size() / threads];
+				for (int j = 0; j < lookup.keySet().size() / threads; j++) {
+
+					tmp[j] = lookup.keySet().stream().toList().get((lookup.keySet().size() / threads) * i + j);
+				}
+			}
+			inputs.add(i, tmp);
+		}
+
+
+		for (final String[] input : inputs) {
+			int finalDataSize = dataSize;
+			Callable<Boolean> callable = new Callable<Boolean>() {
+				public Boolean call() throws Exception {
+					buildLocalMultimap(keys, lookup, lookup2, bigBlock, smallBlock, finalDataSize,
+							dictionaryForMM, counter, disj2, input);
+				return true;
+				}
+			};
+			service.submit(callable);
+		}
+
+		service.shutdown();
+		service.awaitTermination(1000, TimeUnit.SECONDS);
+
+		long endTime = System.nanoTime();
+
+		Printer.statsln("Time to construct LMM " + (endTime - startTime) / 1000000000);
+
+		disj2.setDictionaryForMM(dictionaryForMM);
+		return disj2;
+
+	}
+
+	private static void buildLocalMultimap(List<byte[]> keys, Multimap<String, String> lookup, Multimap<String, String> lookup2,
+								  int bigBlock, int smallBlock, int dataSize, Multimap<String, Integer> dictionaryForMM,
+								  int counter, IEX2Lev disj2, String[] wordSet)
+			throws IOException, InterruptedException, ExecutionException {
+		for (String keyword : wordSet) {
 
 			// Stats for keeping track with the evaluation
 
@@ -240,14 +300,6 @@ public class IEX2Lev implements Serializable {
 			counter++;
 
 		}
-
-		long endTime = System.nanoTime();
-
-		Printer.statsln("Time to construct LMM " + (endTime - startTime) / 1000000000);
-
-		disj2.setDictionaryForMM(dictionaryForMM);
-		return disj2;
-
 	}
 
 	// ***********************************************************************************************//

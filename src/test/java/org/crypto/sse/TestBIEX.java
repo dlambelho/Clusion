@@ -12,6 +12,7 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -45,11 +46,11 @@ public class TestBIEX {
         listSKs.add(new byte[32]);
 
 
-        String pathName = "test/";
+        String pathName = "../texts/business/";
 
         ArrayList<File> listOfFile = new ArrayList<File>();
 
-
+        SecureRandom random = new SecureRandom();
         TextProc.listf(pathName, listOfFile);
 
 //				ArrayList<File> files = new ArrayList<File>();
