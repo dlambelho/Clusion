@@ -13,6 +13,8 @@ import javax.crypto.CipherOutputStream;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import org.apache.commons.lang.StringUtils;
+import org.bouncycastle.util.Arrays;
 
 public class AES_Encryptor {
 
@@ -53,7 +55,8 @@ public class AES_Encryptor {
         // "sizeOfFileName" characters including 3 characters marking the end of
         // it
         identifier = identifier + "\t\t\t";
-        byte[] input = concat(identifier.getBytes(), new byte[sizeOfFileName - identifier.getBytes().length]);
+        StringUtils.rightPad(identifier, sizeOfFileName/4);
+        byte[] input = identifier.getBytes();
 
         ByteArrayInputStream bIn = new ByteArrayInputStream(input);
         CipherInputStream cIn = new CipherInputStream(bIn, encryptCipher);
@@ -75,11 +78,9 @@ public class AES_Encryptor {
             throws InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException,
             NoSuchProviderException, NoSuchPaddingException, IOException {
 
-        byte[] ivBytes = new byte[16];
-
         byte[] cipherText = new byte[input.length - 16];
 
-        System.arraycopy(input, 0, ivBytes, 0, ivBytes.length);
+//        System.arraycopy(input, 0, ivBytes, 0, ivBytes.length);
         System.arraycopy(input, ivBytes.length, cipherText, 0, cipherText.length);
 
         ByteArrayOutputStream bOut = new ByteArrayOutputStream();
@@ -92,12 +93,12 @@ public class AES_Encryptor {
     }
 
     public static byte[] concat(byte[] a, byte[] b) {
-        int aLen = a.length;
-        int bLen = b.length;
-        byte[] c = new byte[aLen + bLen];
-        System.arraycopy(a, 0, c, 0, aLen);
-        System.arraycopy(b, 0, c, aLen, bLen);
-        return c;
+//        int aLen = a.length;
+//        int bLen = b.length;
+//        byte[] c = new byte[aLen + bLen];
+//        System.arraycopy(a, 0, c, 0, aLen);
+//        System.arraycopy(b, 0, c, aLen, bLen);
+        return Arrays.concatenate(a,b);
     }
 
 

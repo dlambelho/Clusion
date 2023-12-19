@@ -65,7 +65,7 @@ import org.apache.commons.collections.list.SetUniqueList;
 public class RR2Lev implements Serializable {
 
 	// define the number of character that a file identifier can have
-	public static int sizeOfFileIdentifer = 40;
+	public static int sizeOfFileIdentifer = 200;
 
 	// instantiate the Secure Random Object
 	public static SecureRandom random = new SecureRandom();
@@ -135,7 +135,7 @@ public class RR2Lev implements Serializable {
 
 		random.setSeed(CryptoPrimitives.randomSeed(16));
 
-		for (int i = 0; i < dataSize; i++) {
+		for (int i = 0; i < 1; i++) {
 			// initialize all buckets with random values
 			free.add(i);
 		}
@@ -189,9 +189,9 @@ public class RR2Lev implements Serializable {
 
 				Collection<Map.Entry<String, byte[]>> keys = future.get().entries();
 
-				String checkEntry = "SELECT COUNT(*) FROM CLUSION." + table + " WHERE HMAC LIKE ?";
+				String checkEntry = "SELECT COUNT(*) FROM " + table + " WHERE HMAC LIKE ?";
 
-				String stat = "INSERT INTO CLUSION." + table + " (IDENTIFIER, HMAC) VALUES (?, ?)";
+				String stat = "INSERT INTO " + table + " (IDENTIFIER, HMAC) VALUES (?, ?)";
 
 				DatabaseConnection.getInstance().setAutoCommit(false);
 				try (PreparedStatement statement = DatabaseConnection.getInstance().prepareStatement(stat)) {
@@ -403,7 +403,7 @@ public class RR2Lev implements Serializable {
 
 		List<byte[]> tempList = new ArrayList<>();
 
-		String fetch = "SELECT IDENTIFIER FROM CLUSION." + table + " WHERE HMAC LIKE ?";
+		String fetch = "SELECT IDENTIFIER FROM " + table + " WHERE HMAC LIKE ?";
 		try (PreparedStatement statement = DatabaseConnection.getInstance().prepareStatement(fetch)) {
 			statement.setString(1, new String(l));
 			ResultSet result = statement.executeQuery();
@@ -542,18 +542,20 @@ public class RR2Lev implements Serializable {
         long startTime = System.nanoTime();
 
         byte[] iv = new byte[16];
+		byte[] key1;
+		byte[] key2;
 
         for (String word : listOfKeyword) {
 
             counter++;
-            if (((float) counter / 10000) == (int) (counter / 10000)) {
-                Printer.debugln("Number of processed keywords " + counter);
-            }
+//            if (((float) counter / 10000) == (int) (counter / 10000)) {
+//                Printer.debugln("Number of processed keywords " + counter);
+//            }
 
             // generate the tag
-            byte[] key1 = CryptoPrimitives.generateHmac(key, 1 + word);
-            byte[] key2 = CryptoPrimitives.generateHmac(key, 2 + word);
-            int t = (int) Math.ceil((float) lookup.get(word).size() / bigBlock);
+			key1 = CryptoPrimitives.generateHmac(key, 1 + word);
+			key2 = CryptoPrimitives.generateHmac(key, 2 + word);
+			int t = (int) Math.ceil((float) lookup.get(word).size() / bigBlock);
 
 			AES_Encryptor encryptor1 = new AES_Encryptor(key1, iv);
 			AES_Encryptor encryptor2 = new AES_Encryptor(key2, iv);
@@ -563,7 +565,7 @@ public class RR2Lev implements Serializable {
                 byte[] l = CryptoPrimitives.generateHmac(key1, Integer.toString(0));
                 //random.nextBytes(iv);
                 byte[] v = encryptor2.encryptAES_CTR_String("1 " + lookup.get(word).toString(), smallBlock * sizeOfFileIdentifer);
-                gamma.put(new String(l), v);
+                gamma.put(new String(Base64.getEncoder().encode(l)), v);
             } else {
 
                 List<String> listArrayIndex = new ArrayList<String>();
@@ -613,7 +615,7 @@ public class RR2Lev implements Serializable {
                     byte[] l = CryptoPrimitives.generateHmac(key1, Integer.toString(0));
                     //random.nextBytes(iv);
                     byte[] v = encryptor2.encryptAES_CTR_String("2 " + listArrayIndex.toString(), smallBlock * sizeOfFileIdentifer);
-                    gamma.put(new String(l), v);
+                    gamma.put(new String(Base64.getEncoder().encode(l)), v);
                 }
                 // big case
                 else {
@@ -667,7 +669,7 @@ public class RR2Lev implements Serializable {
                     byte[] l = CryptoPrimitives.generateHmac(key1, Integer.toString(0));
                     //random.nextBytes(iv);
                     byte[] v = encryptor2.encryptAES_CTR_String("3 " + listArrayIndexTwo.toString(), smallBlock * sizeOfFileIdentifer);
-                    gamma.put(new String(l), v);
+                    gamma.put(new String(Base64.getEncoder().encode(l)), v);
                 }
             }
         }
@@ -686,12 +688,13 @@ public class RR2Lev implements Serializable {
 
         SetUniqueList toFetch = SetUniqueList.decorate(new LinkedList<String>());
 		List<String> ret = new ArrayList<>();
-        toFetch.add(new String(CryptoPrimitives.generateHmac(keys[0], Integer.toString(0))));
+		byte[] l = CryptoPrimitives.generateHmac(keys[0], Integer.toString(0));
+        toFetch.add(new String(Base64.getEncoder().encode(l)));
         do {
 
             List<byte[]> tempList = new ArrayList<>();
 
-            String fetch = "SELECT IDENTIFIER FROM CLUSION." + table + " WHERE HMAC LIKE ?";
+            String fetch = "SELECT IDENTIFIER FROM " + table + " WHERE HMAC LIKE ?";
             try (PreparedStatement statement = DatabaseConnection.getInstance().prepareStatement(fetch)) {
                 statement.setString(1, (String) toFetch.remove(0));
                 ResultSet result = statement.executeQuery();

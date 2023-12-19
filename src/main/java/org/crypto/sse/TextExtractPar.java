@@ -102,6 +102,9 @@ public class TextExtractPar implements Serializable {
 	public static void extractTextPar(ArrayList<File> listOfFile)
 			throws InterruptedException, ExecutionException, IOException {
 
+		lp1 = ArrayListMultimap.create();
+		lp2 = ArrayListMultimap.create();
+
 		int threads = 0;
 		if (Runtime.getRuntime().availableProcessors() > listOfFile.size()) {
 			threads = listOfFile.size();

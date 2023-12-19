@@ -61,6 +61,12 @@
       <version>19.3.0.0</version>
     </dependency>
 
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <version>42.6.0</version>
+    </dependency>
+
     <!-- https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on -->
     <dependency>
       <groupId>org.bouncycastle</groupId>
@@ -137,3 +143,4 @@
     </dependency>
   </dependencies>
 </project>
+

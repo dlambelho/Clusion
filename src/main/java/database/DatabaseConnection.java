@@ -1,14 +1,13 @@
 package database;
 
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import oracle.jdbc.pool.OracleDataSource;
 
 public class DatabaseConnection {
-    private static final String url = "jdbc:oracle:thin:@//127.0.0.1:1521/XEPDB1?oracle.net.disableOob=true";
-    private static final String DB_DRIVER = "oracle.jdbc.driver.OracleDriver";
-    private static final String USERNAME = "CLUSION";
+    private static final String url = "jdbc:postgresql://localhost:5432/postgres";
+    private static final String USERNAME = "postgres";
     private static final String PASSWORD = "oracle";
 
     private static final String CLEAR = "TRUNCATE TABLE %s";
@@ -17,9 +16,7 @@ public class DatabaseConnection {
 
     private DatabaseConnection() {
         try {
-            OracleDataSource ds = new OracleDataSource();
-            ds.setURL(url);
-            dbConn = ds.getConnection(USERNAME, PASSWORD);
+            dbConn = DriverManager.getConnection(url, USERNAME, PASSWORD);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -54,6 +51,16 @@ public class DatabaseConnection {
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
+        }
+    }
+
+    public static void main(String[] args) {
+        try(PreparedStatement state = getInstance().prepareStatement("INSERT into \"GLOBAL_MAP\" values (?,?)")) {
+            state.setString(1, "word");
+            state.setBytes(2, new byte[] {(byte) 0x1232});
+            state.execute();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
     }
 

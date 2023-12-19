@@ -124,15 +124,15 @@ public class IEX2Lev implements Serializable {
 		RR2Lev[] localMultiMap = new RR2Lev[lookup.keySet().size()];
 		Multimap<String, Integer> dictionaryForMM = ArrayListMultimap.create();
 
-		Printer.debugln("Number of (w, id) pairs " + lookup.size());
-
-		Printer.debugln("Number of keywords " + lookup.keySet().size());
-
-		BufferedWriter writer = new BufferedWriter(new FileWriter("logs.txt", true));
-
-		writer.write("\n *********************Stats******* \n");
-		writer.write("\n Number of (w, id) pairs " + lookup2.size());
-		writer.write("\n Number of keywords " + lookup.keySet().size());
+//		Printer.debugln("Number of (w, id) pairs " + lookup.size());
+//
+//		Printer.debugln("Number of keywords " + lookup.keySet().size());
+//
+//		BufferedWriter writer = new BufferedWriter(new FileWriter("logs.txt", true));
+//
+//		writer.write("\n *********************Stats******* \n");
+//		writer.write("\n Number of (w, id) pairs " + lookup2.size());
+//		writer.write("\n Number of keywords " + lookup.keySet().size());
 
 		int counter = 0;
 
@@ -140,7 +140,7 @@ public class IEX2Lev implements Serializable {
 		///////////////////// size/////////////////////////////
 
 		HashMap<Integer, Integer> histogram = new HashMap<Integer, Integer>();
-		Printer.debugln("Number of documents " + lookup2.keySet().size());
+//		Printer.debugln("Number of documents " + lookup2.keySet().size());
 		for (String keyword : lookup.keySet()) {
 			if (histogram.get(lookup.get(keyword).size()) != null) {
 				int tmp = histogram.get(lookup.get(keyword).size());
@@ -156,23 +156,23 @@ public class IEX2Lev implements Serializable {
 		}
 
 		// Construction of the global multi-map
-		Printer.debugln("\nBeginning of Global MM creation \n");
-
-		long startTime1 = System.nanoTime();
+//		Printer.debugln("\nBeginning of Global MM creation \n");
+//
+//		long startTime1 = System.nanoTime();
 
 		IEX2Lev disj2 = new IEX2Lev(RR2Lev.constructEMMParGMM(keys.get(0), lookup, bigBlock, smallBlock, dataSize, GLOBAL_MAP),
 				localMultiMap, dictionaryForMM);
 
-		long endTime1 = System.nanoTime();
-
-		writer.write("\n Time of MM global setup time #(w, id)/#DB " + (endTime1 - startTime1) / lookup2.size());
-		writer.close();
+//		long endTime1 = System.nanoTime();
+//
+//		writer.write("\n Time of MM global setup time #(w, id)/#DB " + (endTime1 - startTime1) / lookup2.size());
+//		writer.close();
 
 		numberPairs = numberPairs + lookup.size();
 
 		// Construction of the local multi-map
 
-		Printer.debugln("Start of Local Multi-Map construction");
+//		Printer.debugln("Start of Local Multi-Map construction");
 
 		long startTime = System.nanoTime();
 
@@ -220,7 +220,7 @@ public class IEX2Lev implements Serializable {
 
 		long endTime = System.nanoTime();
 
-		Printer.statsln("Time to construct LMM " + (endTime - startTime) / 1000000000);
+//		Printer.statsln("Time to construct LMM " + (endTime - startTime) / 1000000000);
 
 		disj2.setDictionaryForMM(dictionaryForMM);
 		return disj2;
@@ -235,34 +235,34 @@ public class IEX2Lev implements Serializable {
 
 			// Stats for keeping track with the evaluation
 
-			for (int j = 0; j < 100; j++) {
-
-				if (counter == (int) ((j + 1) * lookup.keySet().size() / 100)) {
-					BufferedWriter writer2 = new BufferedWriter(new FileWriter("temp-logs.txt", true));
-					writer2.write("\n Number of local multi-maps created " + j + " %");
-					writer2.close();
-
-					break;
-				}
-			}
+//			for (int j = 0; j < 100; j++) {
+//
+//				if (counter == (int) ((j + 1) * lookup.keySet().size() / 100)) {
+//					BufferedWriter writer2 = new BufferedWriter(new FileWriter("temp-logs.txt", true));
+//					writer2.write("\n Number of local multi-maps created " + j + " %");
+//					writer2.close();
+//
+//					break;
+//				}
+//			}
 
 			// Filter setting optional. For a setup without any filtering set
 			// filterParameter to 0
 			if (((double) lookup.get(keyword).size() / TextExtractPar.maxTupleSize > filterParameter)) {
 
 				// Stats
-				Printer.debugln("Keyword in LMM " + keyword);
-				BufferedWriter writer3 = new BufferedWriter(new FileWriter("words-logs.txt", true));
-				writer3.write("\n Keyword in LMM " + keyword);
-				writer3.close();
-
-				for (int j = 0; j < 10; j++) {
-
-					if (counter == (int) ((j + 1) * lookup.keySet().size() / 10)) {
-						Printer.statsln("Number of total keywords processed equals " + j + "0 % \n");
-						break;
-					}
-				}
+//				Printer.debugln("Keyword in LMM " + keyword);
+//				BufferedWriter writer3 = new BufferedWriter(new FileWriter("words-logs.txt", true));
+//				writer3.write("\n Keyword in LMM " + keyword);
+//				writer3.close();
+//
+//				for (int j = 0; j < 10; j++) {
+//
+//					if (counter == (int) ((j + 1) * lookup.keySet().size() / 10)) {
+//						Printer.statsln("Number of total keywords processed equals " + j + "0 % \n");
+//						break;
+//					}
+//				}
 
 				// First computing V_w. Determine Doc identifiers
 
